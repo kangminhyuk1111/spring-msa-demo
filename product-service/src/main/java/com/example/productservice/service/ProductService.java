@@ -4,6 +4,7 @@ import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.entity.Product;
+import com.example.productservice.exception.ProductNotFoundException;
 import com.example.productservice.repository.ProductRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class ProductService {
 
   public ProductResponse findById(final Long id) {
     final Product product = productRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
+        .orElseThrow(() -> new ProductNotFoundException(id));
 
     return ProductResponse.of(product);
   }
@@ -41,7 +42,7 @@ public class ProductService {
   @Transactional
   public ProductResponse update(final Long id, final UpdateProductRequest request) {
     final Product product = productRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
+        .orElseThrow(() -> new ProductNotFoundException(id));
 
     product.update(request.name(), request.price(), request.stock());
 

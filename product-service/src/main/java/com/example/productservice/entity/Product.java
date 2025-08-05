@@ -37,6 +37,13 @@ public class Product {
     this.stock = stock;
   }
 
+  public Product(final Long id, final String name, final Integer price, final Integer stock) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+    this.stock = stock;
+  }
+
   public Long getId() {
     return id;
   }
