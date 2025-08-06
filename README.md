@@ -72,11 +72,11 @@ spring-msa-demo/
 
 ### 2단계: Order Service 구현 (진행 중)
 **[상세 요구사항](./docs/2단계.md)**
-- [ ] Spring Boot 프로젝트 설정 (Port: 8083)
-- [ ] Order 엔티티 설계 (id, productId, quantity, totalPrice, status)
-- [ ] RestTemplate을 통한 Product Service 호출
-- [ ] 주문 생성 로직 구현 (재고 검증 포함)
-- [ ] 주문 상태 관리 API
+- [x] Spring Boot 프로젝트 설정 (Port: 8083)
+- [x] Order 엔티티 설계 (id, productId, quantity, totalPrice, status)
+- [x] FeignClient을 통한 Product Service 호출
+- [x] 주문 생성 로직 구현 (재고 검증 포함)
+- [x] 주문 상태 관리 API
 
 ### 3단계: API Gateway 구현 (예정)
 **[상세 요구사항](./docs/3단계.md)**
