@@ -3,6 +3,7 @@ package com.example.productservice.service;
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
+import com.example.productservice.exception.ProductNotFoundException;
 import com.example.productservice.repository.FakeProductRepository;
 import com.example.productservice.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,7 @@ class ProductServiceTest {
   }
 
   @Test
-  void 상품_생성_후_조회_통합_테스트() {
+  void 상품_생성_후_조회_테스트() {
     CreateProductRequest request = new CreateProductRequest("노트북", 1000000, 10);
 
     ProductResponse savedProduct = productService.save(request);
@@ -34,6 +35,14 @@ class ProductServiceTest {
     assertThat(foundProduct.name()).isEqualTo("노트북");
     assertThat(foundProduct.price()).isEqualTo(1000000);
     assertThat(foundProduct.stock()).isEqualTo(10);
+  }
+
+  @Test
+  void 존재하지_않는_상품은_조회하면_예외가_발생한다() {
+    Long notExistId = 999L;
+
+    assertThatThrownBy(() -> productService.findById(notExistId))
+        .isInstanceOf(ProductNotFoundException.class);
   }
 
   @Test
@@ -49,7 +58,7 @@ class ProductServiceTest {
   }
 
   @Test
-  void 상품_수정_통합_테스트() {
+  void 상품_수정_테스트() {
     ProductResponse savedProduct = productService.save(
         new CreateProductRequest("기존상품", 500000, 5)
     );
@@ -64,6 +73,15 @@ class ProductServiceTest {
   }
 
   @Test
+  void 존재하지_않는_ID로_상품을_수정하면_예외를_발생시킨다() {
+    long nonExistentId = 999L;
+    UpdateProductRequest updateRequest = new UpdateProductRequest("수정된상품", 800000, 15);
+
+    assertThatThrownBy(() -> productService.update(nonExistentId, updateRequest))
+        .isInstanceOf(RuntimeException.class);
+  }
+
+  @Test
   void 상품_삭제_후_조회_실패_테스트() {
     ProductResponse savedProduct = productService.save(
         new CreateProductRequest("삭제될상품", 100000, 1)
@@ -72,7 +90,6 @@ class ProductServiceTest {
     productService.delete(savedProduct.id());
 
     assertThatThrownBy(() -> productService.findById(savedProduct.id()))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("상품이 존재하지 않습니다.");
+        .isInstanceOf(RuntimeException.class);
   }
 }

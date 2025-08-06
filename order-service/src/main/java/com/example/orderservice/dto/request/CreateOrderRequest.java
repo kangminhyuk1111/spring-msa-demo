@@ -8,3 +8,4 @@ public record CreateOrderRequest(Long productId, Integer quantity) {
     return new Order(productId, quantity, price * quantity, OrderStatus.PENDING);
   }
 }
+

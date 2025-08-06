@@ -18,7 +18,7 @@ public class ProductClientIntegrationTest {
   @Test
   public void testGetProduct() {
     assertThrows(FeignException.NotFound.class, () -> {
-      productClient.getProduct(100000000L);
+      productClient.getProduct(1000000L);
     });
   }
 }
