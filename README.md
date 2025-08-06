@@ -27,9 +27,9 @@ API Gateway (8080)
 ## 기술 스택
 
 - **Backend**: Spring Boot 3.x, Spring Data JPA
-- **Database**: H2 (개발용)
+- **Database**: MySQL
 - **API Gateway**: Spring Cloud Gateway
-- **Inter-Service Communication**: RestTemplate
+- **Inter-Service Communication**: FeignClient
 - **Build Tool**: Gradle
 - **Java Version**: 17
 
@@ -50,7 +50,7 @@ spring-msa-demo/
 ### MSA 핵심 개념
 - [x] **서비스 분리**: 도메인별 독립적인 서비스 구성
 - [x] **서비스 간 통신**: REST API를 통한 마이크로서비스 연동
-- [ ] **API Gateway**: 단일 진입점을 통한 라우팅
+- [x] **API Gateway**: 단일 진입점을 통한 라우팅
 - [ ] **부하 분산**: 동일 서비스의 다중 인스턴스 운영
 - [ ] **장애 격리**: Circuit Breaker 패턴 적용
 
