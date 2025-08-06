@@ -1,5 +1,6 @@
 package com.example.orderservice.entity;
 
+import com.example.orderservice.exception.ApplicationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,6 +55,20 @@ public class Order {
     this.quantity = quantity;
     this.totalPrice = totalPrice;
     this.status = status;
+  }
+
+  public void complete() {
+    if (this.status != OrderStatus.PENDING) {
+      throw new ApplicationException("대기 중인 주문만 완료 처리할 수 있습니다.");
+    }
+    this.status = OrderStatus.COMPLETED;
+  }
+
+  public void cancel() {
+    if (this.status != OrderStatus.PENDING) {
+      throw new ApplicationException("대기 중인 주문만 취소 처리할 수 있습니다.");
+    }
+    this.status = OrderStatus.CANCELLED;
   }
 
   public Long getId() {
