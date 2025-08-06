@@ -2,27 +2,20 @@ spring:
   application:
     name: Product Service
 
-  spring:
-    datasource:
-      driver-class-name: org.h2.Driver
-      url: 'jdbc:h2:mem:shop_db'
-      username: root
-      password: 1234
-
-    h2:
-      console:
-        enabled: true
-        path: /h2-console
-
-    jpa:
-      database-platform: org.hibernate.dialect.H2Dialect
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 'jdbc:mysql://localhost:3306/product_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8'
+    username: root
+    password: 1234
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: create
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.H2Dialect
-          format_sql: true
-          show_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        show_sql: true
 
 server:
   port: 8082
