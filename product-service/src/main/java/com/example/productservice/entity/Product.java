@@ -57,6 +57,10 @@ public class Product {
     this.stock = stock;
   }
 
+  public void reduceStock(final Integer quantity) {
+    this.stock = stock - quantity;
+  }
+
   public Long getId() {
     return id;
   }

@@ -4,6 +4,7 @@ import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.service.ProductService;
+import com.example.productservice.dto.request.ReduceProductRequest;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,5 +51,11 @@ public class ProductController {
   @ResponseStatus(HttpStatus.OK)
   public void deleteProduct(@PathVariable final Long id) {
     productService.delete(id);
+  }
+
+  @PutMapping("/reduce")
+  @ResponseStatus(HttpStatus.OK)
+  public void reduceProductStock(@RequestBody ReduceProductRequest request) {
+    productService.reduceStock(request);
   }
 }
