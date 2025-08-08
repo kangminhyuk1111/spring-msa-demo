@@ -54,7 +54,7 @@ class OrderServiceTest {
       );
       given(orderRepository.findAll()).willReturn(orders);
 
-      List<OrderResponse> result = orderService.findAll();
+      List<OrderResponse> result = orderService.findAllOrders();
 
       assertThat(result).hasSize(2);
       assertThat(result.get(0).id()).isEqualTo(1L);
@@ -66,7 +66,7 @@ class OrderServiceTest {
     void 주문이_없을_때_빈_리스트를_반환한다() {
       given(orderRepository.findAll()).willReturn(List.of());
 
-      final List<OrderResponse> result = orderService.findAll();
+      final List<OrderResponse> result = orderService.findAllOrders();
 
       assertThat(result).hasSize(0);
     }
@@ -83,7 +83,7 @@ class OrderServiceTest {
       Order order = new Order(orderId, 1L, 2, 20000, OrderStatus.PENDING);
       given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
 
-      OrderResponse result = orderService.findById(orderId);
+      OrderResponse result = orderService.findOrderById(orderId);
 
       assertThat(result.id()).isEqualTo(orderId);
       assertThat(result.productId()).isEqualTo(1L);
@@ -98,7 +98,7 @@ class OrderServiceTest {
       Long orderId = 999L;
       given(orderRepository.findById(orderId)).willReturn(Optional.empty());
 
-      assertThatThrownBy(() -> orderService.findById(orderId))
+      assertThatThrownBy(() -> orderService.findOrderById(orderId))
           .isInstanceOf(ApplicationException.class);
     }
   }
@@ -123,7 +123,7 @@ class OrderServiceTest {
       Order savedOrder = new Order(1L, 1L, 5, 50000, OrderStatus.PENDING);
       given(orderRepository.save(any(Order.class))).willReturn(savedOrder);
 
-      OrderResponse result = orderService.save(createOrderRequest);
+      OrderResponse result = orderService.createOrder(createOrderRequest);
 
       assertThat(result.id()).isEqualTo(1L);
       assertThat(result.productId()).isEqualTo(1L);
@@ -140,7 +140,7 @@ class OrderServiceTest {
       CreateOrderRequest requestMoreThanStock = new CreateOrderRequest(1L, 5);
       given(productClient.getProduct(1L)).willReturn(insufficientStockProduct);
 
-      assertThatThrownBy(() -> orderService.save(requestMoreThanStock))
+      assertThatThrownBy(() -> orderService.createOrder(requestMoreThanStock))
           .isInstanceOf(ApplicationException.class)
           .hasMessage("주문하려는 상품의 재고가 부족합니다. 남은 재고: 3");
     }
@@ -150,7 +150,7 @@ class OrderServiceTest {
     void 존재하지_않는_상품으로_주문_생성_시_예외가_발생한다() {
       given(productClient.getProduct(anyLong())).willThrow(FeignException.class);
 
-      assertThatThrownBy(() -> orderService.save(createOrderRequest))
+      assertThatThrownBy(() -> orderService.createOrder(createOrderRequest))
           .isInstanceOf(ProductNotFoundException.class)
           .hasMessage("주문하려는 상품을 찾을 수 없습니다.");
     }
@@ -164,7 +164,7 @@ class OrderServiceTest {
       Order savedOrder = new Order(1L, 1L, 5, 50000, OrderStatus.PENDING);
       given(orderRepository.save(any(Order.class))).willReturn(savedOrder);
 
-      OrderResponse result = orderService.save(exactQuantityRequest);
+      OrderResponse result = orderService.createOrder(exactQuantityRequest);
 
       assertThat(result).isNotNull();
       assertThat(result.quantity()).isEqualTo(5);
@@ -182,7 +182,7 @@ class OrderServiceTest {
       Order pendingOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.PENDING);
       given(orderRepository.findById(orderId)).willReturn(Optional.of(pendingOrder));
 
-      OrderResponse result = orderService.cancel(orderId);
+      OrderResponse result = orderService.cancelOrder(orderId);
 
       assertThat(result.id()).isEqualTo(orderId);
       assertThat(result.status()).isEqualTo(OrderStatus.CANCELLED);
@@ -194,7 +194,7 @@ class OrderServiceTest {
       Long orderId = 999L;
       given(orderRepository.findById(orderId)).willReturn(Optional.empty());
 
-      assertThatThrownBy(() -> orderService.cancel(orderId))
+      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
           .isInstanceOf(ApplicationException.class);
     }
 
@@ -205,7 +205,7 @@ class OrderServiceTest {
       Order completedOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.COMPLETED);
       given(orderRepository.findById(orderId)).willReturn(Optional.of(completedOrder));
 
-      assertThatThrownBy(() -> orderService.cancel(orderId))
+      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
           .isInstanceOf(ApplicationException.class);
     }
 
@@ -216,7 +216,7 @@ class OrderServiceTest {
       Order cancelledOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.CANCELLED);
       given(orderRepository.findById(orderId)).willReturn(Optional.of(cancelledOrder));
 
-      assertThatThrownBy(() -> orderService.cancel(orderId))
+      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
           .isInstanceOf(ApplicationException.class);
     }
   }

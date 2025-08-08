@@ -2,13 +2,12 @@ package com.example.orderservice.service;
 
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.ReduceProductRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.ProductResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.exception.ApplicationException;
-import com.example.orderservice.exception.ProductNotFoundException;
 import com.example.orderservice.repository.OrderRepository;
-import feign.FeignException;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +23,11 @@ public class OrderService {
     this.productClient = productClient;
   }
 
-  public List<OrderResponse> findAll() {
+  public List<OrderResponse> findAllOrders() {
     return orderRepository.findAll().stream().map(OrderResponse::of).toList();
   }
 
-  public OrderResponse findById(final Long id) {
+  public OrderResponse findOrderById(final Long id) {
     final Order order = orderRepository.findById(id)
         .orElseThrow(() -> new ApplicationException("주문 정보를 찾을 수 없습니다."));
 
@@ -36,12 +35,10 @@ public class OrderService {
   }
 
   @Transactional
-  public OrderResponse save(final CreateOrderRequest request) {
-    final ProductResponse product = getProductDetails(request.productId());
+  public OrderResponse createOrder(final CreateOrderRequest request) {
+    final ProductResponse product = productClient.getProduct(request.productId());
 
-    if (product.stock() < request.quantity()) {
-      throw new ApplicationException("주문하려는 상품의 재고가 부족합니다. 남은 재고: " + product.stock());
-    }
+    reduceProductStock(request.productId(), request.quantity());
 
     final Order order = request.toDomain(product.price());
 
@@ -51,7 +48,7 @@ public class OrderService {
   }
 
   @Transactional
-  public OrderResponse cancel(final Long id) {
+  public OrderResponse cancelOrder(final Long id) {
     final Order order = orderRepository.findById(id)
         .orElseThrow(() -> new ApplicationException("주문 정보를 찾을 수 없습니다."));
 
@@ -60,11 +57,9 @@ public class OrderService {
     return OrderResponse.of(order);
   }
 
-  private ProductResponse getProductDetails(final Long productId) {
-    try {
-      return productClient.getProduct(productId);
-    } catch (FeignException e) {
-      throw new ProductNotFoundException("주문하려는 상품을 찾을 수 없습니다.");
-    }
+  private void reduceProductStock(final Long productId, final Integer quantity) {
+    final ReduceProductRequest request = new ReduceProductRequest(productId, quantity);
+
+    productClient.reduceStock(request);
   }
 }

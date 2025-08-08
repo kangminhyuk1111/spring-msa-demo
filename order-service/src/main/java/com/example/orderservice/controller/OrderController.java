@@ -24,21 +24,21 @@ public class OrderController {
 
   @GetMapping
   public List<OrderResponse> findAllOrders() {
-    return orderService.findAll();
+    return orderService.findAllOrders();
   }
 
   @GetMapping("/{id}")
   public OrderResponse findOrderById(@PathVariable final Long id) {
-    return orderService.findById(id);
+    return orderService.findOrderById(id);
   }
 
   @PostMapping
   public OrderResponse createOrder(@RequestBody final CreateOrderRequest request) {
-    return orderService.save(request);
+    return orderService.createOrder(request);
   }
 
   @PutMapping("/{id}/cancel")
   public OrderResponse cancelOrder(@PathVariable final Long id) {
-    return orderService.cancel(id);
+    return orderService.cancelOrder(id);
   }
 }
