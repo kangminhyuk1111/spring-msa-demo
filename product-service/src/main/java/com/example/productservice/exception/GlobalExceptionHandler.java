@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+  @ExceptionHandler(ProductOutOfStockException.class)
+  public ResponseEntity<ErrorResponse> handleProductOutOfStockException(ProductOutOfStockException e) {
+    ErrorResponse errorResponse = ErrorResponse.of(409, e.getMessage());
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+  }
+
   @ExceptionHandler(ProductNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleProductNotFoundException(ProductNotFoundException e) {
     ErrorResponse errorResponse = ErrorResponse.of(404, e.getMessage());

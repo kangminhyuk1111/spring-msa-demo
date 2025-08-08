@@ -1,10 +1,12 @@
 package com.example.productservice.service;
 
 import com.example.productservice.dto.request.CreateProductRequest;
+import com.example.productservice.dto.request.ReduceProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.entity.Product;
 import com.example.productservice.exception.ProductNotFoundException;
+import com.example.productservice.exception.ProductOutOfStockException;
 import com.example.productservice.repository.ProductRepository;
 import java.util.List;
 import org.slf4j.Logger;
@@ -24,12 +26,10 @@ public class ProductService {
   }
 
   public List<ProductResponse> findAll() {
-    logger.info("ProductService.findAll() called");
     return productRepository.findAll().stream().map(ProductResponse::of).toList();
   }
 
   public ProductResponse findById(final Long id) {
-    logger.info("ProductService.findById() called");
 
     final Product product = productRepository.findById(id)
         .orElseThrow(() -> new ProductNotFoundException(id));
@@ -39,8 +39,6 @@ public class ProductService {
 
   @Transactional
   public ProductResponse save(final CreateProductRequest request) {
-    logger.info("ProductService.save() called");
-
     final Product product = request.toDomain();
 
     final Product saved = productRepository.save(product);
@@ -50,8 +48,6 @@ public class ProductService {
 
   @Transactional
   public ProductResponse update(final Long id, final UpdateProductRequest request) {
-    logger.info("ProductService.update() called");
-
     final Product product = productRepository.findById(id)
         .orElseThrow(() -> new ProductNotFoundException(id));
 
@@ -63,5 +59,17 @@ public class ProductService {
   @Transactional
   public void delete(final Long id) {
     productRepository.deleteById(id);
+  }
+
+  @Transactional
+  public void reduceStock(final ReduceProductRequest request) {
+    Product product = productRepository.findById(request.id())
+        .orElseThrow(() -> new ProductNotFoundException(request.id()));
+
+    if (product.getStock() < request.quantity()) {
+      throw new ProductOutOfStockException(product.getStock(), request.quantity());
+    }
+
+    product.reduceStock(request.quantity());
   }
 }
