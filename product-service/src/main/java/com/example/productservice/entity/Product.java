@@ -61,6 +61,8 @@ public class Product {
     this.stock = stock - quantity;
   }
 
+  public void restoreStock(final Integer quantity) { this.stock = stock + quantity; }
+
   public Long getId() {
     return id;
   }

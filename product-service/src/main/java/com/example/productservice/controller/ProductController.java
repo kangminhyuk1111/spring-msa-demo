@@ -1,6 +1,7 @@
 package com.example.productservice.controller;
 
 import com.example.productservice.dto.request.CreateProductRequest;
+import com.example.productservice.dto.request.RestoreProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.service.ProductService;
@@ -57,5 +58,11 @@ public class ProductController {
   @ResponseStatus(HttpStatus.OK)
   public void reduceProductStock(@RequestBody ReduceProductRequest request) {
     productService.reduceStock(request);
+  }
+
+  @PutMapping("/restore")
+  @ResponseStatus(HttpStatus.OK)
+  public void restoreProductStock(@RequestBody RestoreProductRequest request) {
+    productService.restoreProduct(request);
   }
 }

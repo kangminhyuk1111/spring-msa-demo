@@ -2,6 +2,7 @@ package com.example.productservice.service;
 
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.ReduceProductRequest;
+import com.example.productservice.dto.request.RestoreProductRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.entity.Product;
@@ -9,15 +10,11 @@ import com.example.productservice.exception.ProductNotFoundException;
 import com.example.productservice.exception.ProductOutOfStockException;
 import com.example.productservice.repository.ProductRepository;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductService {
-
-  private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
   private final ProductRepository productRepository;
 
@@ -30,9 +27,7 @@ public class ProductService {
   }
 
   public ProductResponse findById(final Long id) {
-
-    final Product product = productRepository.findById(id)
-        .orElseThrow(() -> new ProductNotFoundException(id));
+    final Product product = findProductById(id);
 
     return ProductResponse.of(product);
   }
@@ -48,8 +43,7 @@ public class ProductService {
 
   @Transactional
   public ProductResponse update(final Long id, final UpdateProductRequest request) {
-    final Product product = productRepository.findById(id)
-        .orElseThrow(() -> new ProductNotFoundException(id));
+    final Product product = findProductById(id);
 
     product.update(request.name(), request.price(), request.stock());
 
@@ -63,13 +57,24 @@ public class ProductService {
 
   @Transactional
   public void reduceStock(final ReduceProductRequest request) {
-    Product product = productRepository.findById(request.id())
-        .orElseThrow(() -> new ProductNotFoundException(request.id()));
+    final Product product = findProductById(request.id());
 
     if (product.getStock() < request.quantity()) {
       throw new ProductOutOfStockException(product.getStock(), request.quantity());
     }
 
     product.reduceStock(request.quantity());
+  }
+
+  @Transactional
+  public void restoreProduct(final RestoreProductRequest request) {
+    final Product product = findProductById(request.id());
+
+    product.restoreStock(request.restoreQuantity());
+  }
+
+  private Product findProductById(final Long id) {
+    return productRepository.findById(id)
+            .orElseThrow(() -> new ProductNotFoundException(id));
   }
 }
