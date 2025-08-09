@@ -1,6 +1,7 @@
 package com.example.orderservice.client;
 
 import com.example.orderservice.dto.request.ReduceProductRequest;
+import com.example.orderservice.dto.request.RestoreProductRequest;
 import com.example.orderservice.dto.response.ProductResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,4 +17,7 @@ public interface ProductClient {
 
   @PutMapping("/reduce")
   void reduceStock(@RequestBody ReduceProductRequest request);
+
+  @PutMapping("/restore")
+  void restoreStock(@RequestBody RestoreProductRequest request);
 }

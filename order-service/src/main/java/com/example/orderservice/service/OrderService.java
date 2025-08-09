@@ -3,6 +3,7 @@ package com.example.orderservice.service;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.ReduceProductRequest;
+import com.example.orderservice.dto.request.RestoreProductRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.ProductResponse;
 import com.example.orderservice.entity.Order;
@@ -38,7 +39,7 @@ public class OrderService {
   public OrderResponse createOrder(final CreateOrderRequest request) {
     final ProductResponse product = productClient.getProduct(request.productId());
 
-    reduceProductStock(request.productId(), request.quantity());
+    reduceProductStock(product.id(), request.quantity());
 
     final Order order = request.toDomain(product.price());
 
@@ -48,11 +49,13 @@ public class OrderService {
   }
 
   @Transactional
-  public OrderResponse cancelOrder(final Long id) {
-    final Order order = orderRepository.findById(id)
+  public OrderResponse cancelOrder(final Long orderId) {
+    final Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> new ApplicationException("주문 정보를 찾을 수 없습니다."));
 
     order.cancel();
+
+    restoreProductStock(order.getProductId(), order.getQuantity());
 
     return OrderResponse.of(order);
   }
@@ -61,5 +64,11 @@ public class OrderService {
     final ReduceProductRequest request = new ReduceProductRequest(productId, quantity);
 
     productClient.reduceStock(request);
+  }
+
+  private void restoreProductStock(final Long productId, final Integer quantity) {
+    final RestoreProductRequest request = new RestoreProductRequest(productId, quantity);
+
+    productClient.restoreStock(request);
   }
 }
