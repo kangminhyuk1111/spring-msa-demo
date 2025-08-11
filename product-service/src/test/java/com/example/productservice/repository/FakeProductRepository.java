@@ -39,6 +39,11 @@ public class FakeProductRepository implements ProductRepository {
     store.remove(id);
   }
 
+  @Override
+  public int decreaseStockAtomically(final Long id, final int quantity) {
+    return 0;
+  }
+
   public void clear() {
     store.clear();
     idGenerator.set(1);
