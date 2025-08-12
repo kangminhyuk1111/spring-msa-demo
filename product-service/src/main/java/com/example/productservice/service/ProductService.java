@@ -31,13 +31,7 @@ public class ProductService {
   }
 
   public synchronized ProductResponse findById(final Long id) {
-    log.info("[상품조회 시작 - SYNC] 상품ID: {}, 스레드: {}",
-        id, Thread.currentThread().getName());
-
     final Product product = findProductById(id);
-
-    log.info("[상품조회 완료 - SYNC] 상품ID: {}, 상품명: {}, 현재재고: {}, 스레드: {}",
-        id, product.getName(), product.getStock(), Thread.currentThread().getName());
 
     return ProductResponse.of(product);
   }
@@ -65,25 +59,13 @@ public class ProductService {
     productRepository.deleteById(id);
   }
 
-  public synchronized void reduceStock(final ReduceProductRequest request) {
-    log.info("[재고차감 시작 - SYNC] 상품ID: {}, 요청수량: {}, 스레드: {}",
-        request.id(), request.quantity(), Thread.currentThread().getName());
+  @Transactional
+  public void reduceStock(ReduceProductRequest request) {
+    int updatedRows = productRepository.reduceStockIsAvailable(request.id(), request.quantity());
 
-    final Product product = findProductById(request.id());
-    log.info("[재고차감용 상품조회 완료 - SYNC] 상품ID: {}, 현재재고: {}, 스레드: {}",
-        request.id(), product.getStock(), Thread.currentThread().getName());
-
-    if (product.getStock() < request.quantity()) {
-      log.warn("[재고부족 - SYNC] 상품ID: {}, 현재재고: {}, 요청수량: {}, 스레드: {}",
-          request.id(), product.getStock(), request.quantity(), Thread.currentThread().getName());
-      throw new ProductOutOfStockException(product.getStock(), request.quantity());
+    if (updatedRows == 0) {
+      throw new ProductOutOfStockException();
     }
-
-    product.reduceStock(request.quantity());
-    log.info("[재고차감 완료 - SYNC] 상품ID: {}, 차감후재고: {}, 스레드: {}",
-        request.id(), product.getStock(), Thread.currentThread().getName());
-
-    productRepository.save(product);
   }
 
   @Transactional
@@ -95,6 +77,6 @@ public class ProductService {
 
   private Product findProductById(final Long id) {
     return productRepository.findById(id)
-            .orElseThrow(() -> new ProductNotFoundException(id));
+        .orElseThrow(() -> new ProductNotFoundException(id));
   }
 }

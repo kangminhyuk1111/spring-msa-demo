@@ -40,7 +40,7 @@ public class FakeProductRepository implements ProductRepository {
   }
 
   @Override
-  public int decreaseStockAtomically(final Long id, final int quantity) {
+  public int reduceStockIsAvailable(final Long id, final int quantity) {
     return 0;
   }
 
