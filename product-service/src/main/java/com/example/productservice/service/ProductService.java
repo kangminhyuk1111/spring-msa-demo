@@ -61,11 +61,13 @@ public class ProductService {
 
   @Transactional
   public void reduceStock(ReduceProductRequest request) {
-    int updatedRows = productRepository.reduceStockIsAvailable(request.id(), request.quantity());
+    final Product product = findProductByIdForUpdate(request.id());
 
-    if (updatedRows == 0) {
+    if(product.getStock() < request.quantity()) {
       throw new ProductOutOfStockException();
     }
+
+    product.reduceStock(request.quantity());
   }
 
   @Transactional
@@ -77,6 +79,11 @@ public class ProductService {
 
   private Product findProductById(final Long id) {
     return productRepository.findById(id)
+        .orElseThrow(() -> new ProductNotFoundException(id));
+  }
+
+  private Product findProductByIdForUpdate(final Long id) {
+    return productRepository.findByIdForUpdate(id)
         .orElseThrow(() -> new ProductNotFoundException(id));
   }
 }

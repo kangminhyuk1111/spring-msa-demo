@@ -9,5 +9,5 @@ public interface ProductRepository {
   Optional<Product> findById(Long id);
   List<Product> findAll();
   void deleteById(Long id);
-  int reduceStockIsAvailable(Long id, int quantity);
+  Optional<Product> findByIdForUpdate(Long id);
 }

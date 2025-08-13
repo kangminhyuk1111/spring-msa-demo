@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Version;
 
 @Entity
 public class Product {
@@ -24,24 +23,10 @@ public class Product {
   @Column(name = "stock", nullable = false)
   private Integer stock;
 
-  @Version
-  @Column(nullable = false)
-  private Long version = 0L;
-
   public Product() {
   }
 
   public Product(final String name, final Integer price, final Integer stock) {
-    validateName(name);
-    validatePrice(price);
-    validateStock(stock);
-
-    this.name = name.trim();
-    this.price = price;
-    this.stock = stock;
-  }
-
-  public void update(final String name, final Integer price, final Integer stock) {
     validateName(name);
     validatePrice(price);
     validateStock(stock);
@@ -62,11 +47,42 @@ public class Product {
     this.stock = stock;
   }
 
-  public void reduceStock(final Integer quantity) {
-    this.stock = stock - quantity;
+  public void update(final String name, final Integer price, final Integer stock) {
+    validateName(name);
+    validatePrice(price);
+    validateStock(stock);
+
+    this.name = name.trim();
+    this.price = price;
+    this.stock = stock;
   }
 
-  public void restoreStock(final Integer quantity) { this.stock = stock + quantity; }
+  public void reduceStock(final Integer quantity) {
+    if (quantity == null) {
+      throw new ProductException("차감할 수량은 null일 수 없습니다.");
+    }
+    if (quantity <= 0) {
+      throw new ProductException("차감할 수량은 0보다 커야 합니다.");
+    }
+    if (this.stock < quantity) {
+      throw new ProductException(
+          String.format("재고가 부족합니다. 현재 재고: %d, 요청 수량: %d", this.stock, quantity)
+      );
+    }
+
+    this.stock = this.stock - quantity;
+  }
+
+  public void restoreStock(final Integer quantity) {
+    if (quantity == null) {
+      throw new ProductException("복구할 수량은 null일 수 없습니다.");
+    }
+    if (quantity <= 0) {
+      throw new ProductException("복구할 수량은 0보다 커야 합니다.");
+    }
+
+    this.stock = this.stock + quantity;
+  }
 
   public Long getId() {
     return id;
@@ -84,10 +100,7 @@ public class Product {
     return stock;
   }
 
-  public Long getVersion() {
-    return version;
-  }
-
+  // 검증 메서드들
   private void validateName(final String name) {
     if (name == null) {
       throw new ProductException("상품명은 null일 수 없습니다.");
@@ -115,5 +128,3 @@ public class Product {
     }
   }
 }
-
-
