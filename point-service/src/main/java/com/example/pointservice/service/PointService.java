@@ -3,6 +3,7 @@ package com.example.pointservice.service;
 import com.example.pointservice.domain.Point;
 import com.example.pointservice.dto.request.AddPointRequest;
 import com.example.pointservice.dto.request.CreateAccountRequest;
+import com.example.pointservice.dto.request.RefundPointRequest;
 import com.example.pointservice.dto.response.PointResponse;
 import com.example.pointservice.dto.request.UsePointRequest;
 import com.example.pointservice.repository.PointRepository;
@@ -16,6 +17,13 @@ public class PointService {
 
   public PointService(final PointRepository pointRepository) {
     this.pointRepository = pointRepository;
+  }
+
+  public PointResponse findPointByUserId(final Long id) {
+    final Point point = pointRepository.findByUserId(id)
+        .orElseThrow(() -> new RuntimeException("계좌가 존재하지 않습니다."));
+
+    return PointResponse.of(point);
   }
 
   @Transactional
@@ -50,7 +58,7 @@ public class PointService {
   }
 
   @Transactional
-  public PointResponse refundPoint(final AddPointRequest request) {
+  public PointResponse refundPoint(final RefundPointRequest request) {
     final Point point = pointRepository.findByUserIdWithLock(request.userId())
         .orElseThrow(() -> new RuntimeException("계좌가 존재하지 않습니다."));
 
