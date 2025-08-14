@@ -65,7 +65,7 @@ spring-msa-demo/
 ## 구현 미션
 
 ### 1단계: Product Service 구현 (완료)
-**[상세 요구사항](./docs/1단계.md)**
+**[상세 요구사항](docs/상품요구사항.md)**
 - [x] Spring Boot 프로젝트 설정 (Port: 8082)
 - [x] Product 엔티티 설계 (id, name, price, stock)
 - [x] H2 데이터베이스 연동
@@ -73,7 +73,7 @@ spring-msa-demo/
 - [x] 단위 테스트 및 API 테스트
 
 ### 2단계: Order Service 구현 (진행 중)
-**[상세 요구사항](./docs/2단계.md)**
+**[상세 요구사항](docs/주문요구사항.md)**
 - [x] Spring Boot 프로젝트 설정 (Port: 8083)
 - [x] Order 엔티티 설계 (id, productId, quantity, totalPrice, status)
 - [x] FeignClient을 통한 Product Service 호출
@@ -81,18 +81,11 @@ spring-msa-demo/
 - [x] 주문 상태 관리 API
 
 ### 3단계: API Gateway 구현 (예정)
-**[상세 요구사항](./docs/3단계.md)**
+**[상세 요구사항](docs/게이트웨이요구사항.md)**
 - [x] Spring Cloud Gateway 설정 (Port: 8080)
 - [x] 서비스별 라우팅 규칙 구성
 - [x] 통합 테스트 환경 구축
 - [x] 부하 분산 테스트
-
-### 4단계: 고급 기능 구현 (예정)
-**[상세 요구사항](./docs/4단계.md)**
-- [ ] User Service 추가
-- [ ] 인증/인가 처리
-- [ ] Docker Compose를 통한 통합 배포
-- [ ] 성능 테스트 및 최적화
 
 ## 실행 방법
 

@@ -1,0 +1,41 @@
+package com.example.userservice.service;
+
+import com.example.userservice.domain.Member;
+import com.example.userservice.dto.request.CreateMemberRequest;
+import com.example.userservice.dto.response.MemberResponse;
+import com.example.userservice.global.ErrorCode;
+import com.example.userservice.global.MemberException;
+import com.example.userservice.repository.MemberRepository;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MemberService {
+
+  private final MemberRepository memberRepository;
+
+  public MemberService(final MemberRepository memberRepository) {
+    this.memberRepository = memberRepository;
+  }
+
+  public MemberResponse createMember(final CreateMemberRequest request) {
+    if (memberRepository.existsByEmail(request.email())) {
+      throw new MemberException(ErrorCode.EMAIL_ALREADY_EXIST.getMessage());
+    }
+
+    final Member saved = memberRepository.save(request.toDomain());
+
+    return MemberResponse.of(saved);
+  }
+
+  public MemberResponse findById(final Long id) {
+    final Member member = memberRepository.findById(id)
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND.getMessage()));
+
+    return MemberResponse.of(member);
+  }
+
+  public List<MemberResponse> findAll() {
+    return memberRepository.findAll().stream().map(MemberResponse::of).toList();
+  }
+}
