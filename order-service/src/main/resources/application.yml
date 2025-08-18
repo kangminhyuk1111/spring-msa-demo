@@ -23,6 +23,9 @@ server:
 product-service:
   api-url: http://localhost:8082/api/products
 
+point-service:
+  api-url: http://localhost:8084/api/points
+
 logging:
   level:
     root: info

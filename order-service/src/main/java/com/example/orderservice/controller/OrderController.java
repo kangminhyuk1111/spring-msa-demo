@@ -41,4 +41,9 @@ public class OrderController {
   public OrderResponse cancelOrder(@PathVariable final Long id) {
     return orderService.cancelOrder(id);
   }
+
+  @PutMapping("/{id}/payment")
+  public OrderResponse paymentOrder(@PathVariable final Long id) {
+    return orderService.processOrderPayment(id);
+  }
 }
