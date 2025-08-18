@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
@@ -19,10 +20,7 @@ public class Order {
   private Long id;
 
   @Column(nullable = false)
-  private Long productId;
-
-  @Column(nullable = false)
-  private Integer quantity;
+  private Long memberId;
 
   @Column(nullable = false)
   private Integer totalPrice;
@@ -31,37 +29,31 @@ public class Order {
   @Enumerated(EnumType.STRING)
   private OrderStatus status;
 
+  @Column(nullable = false)
+  private LocalDateTime orderDate;
+
   public Order() {
   }
 
-  public Order(Long productId, Integer quantity, Integer totalPrice) {
-    this.productId = productId;
-    this.quantity = quantity;
-    this.totalPrice = totalPrice;
-    this.status = OrderStatus.PENDING;
-  }
-
-  public Order(final Long productId, final Integer quantity, final Integer totalPrice,
-      final OrderStatus status) {
-    this.productId = productId;
-    this.quantity = quantity;
+  public Order(final Long memberId, final Integer totalPrice, final OrderStatus status, final LocalDateTime orderDate) {
+    this.memberId = memberId;
     this.totalPrice = totalPrice;
     this.status = status;
-  }
-
-  public Order(Long id, Long productId, Integer quantity, Integer totalPrice, OrderStatus status) {
-    this.id = id;
-    this.productId = productId;
-    this.quantity = quantity;
-    this.totalPrice = totalPrice;
-    this.status = status;
+    this.orderDate = orderDate;
   }
 
   public void complete() {
-    if (this.status != OrderStatus.PENDING) {
-      throw new ApplicationException("대기 중인 주문만 완료 처리할 수 있습니다.");
+    if (this.status != OrderStatus.PAID) {
+      throw new ApplicationException("결제 완료 주문만 완료 처리할 수 있습니다.");
     }
     this.status = OrderStatus.COMPLETED;
+  }
+
+  public void paid() {
+    if (this.status != OrderStatus.PENDING) {
+      throw new ApplicationException("대기 중인 주문만 취소 처리할 수 있습니다.");
+    }
+    this.status = OrderStatus.CANCELLED;
   }
 
   public void cancel() {
@@ -75,12 +67,8 @@ public class Order {
     return id;
   }
 
-  public Long getProductId() {
-    return productId;
-  }
-
-  public Integer getQuantity() {
-    return quantity;
+  public Long getMemberId() {
+    return memberId;
   }
 
   public Integer getTotalPrice() {
@@ -89,5 +77,9 @@ public class Order {
 
   public OrderStatus getStatus() {
     return status;
+  }
+
+  public LocalDateTime getOrderDate() {
+    return orderDate;
   }
 }

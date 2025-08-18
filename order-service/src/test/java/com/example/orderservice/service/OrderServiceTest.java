@@ -1,223 +1,285 @@
 package com.example.orderservice.service;
 
-import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.OrderItemRequest;
 import com.example.orderservice.dto.response.OrderResponse;
-import com.example.orderservice.dto.response.ProductResponse;
 import com.example.orderservice.entity.Order;
+import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.entity.OrderStatus;
 import com.example.orderservice.exception.ApplicationException;
-import com.example.orderservice.exception.ProductNotFoundException;
-import com.example.orderservice.repository.OrderRepository;
-import feign.FeignException;
-import java.util.Optional;
+import com.example.orderservice.fake.FakeOrderItemRepository;
+import com.example.orderservice.fake.FakeOrderRepository;
+import com.example.orderservice.fake.FakeProductClient;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("OrderService 테스트")
 class OrderServiceTest {
 
-  @Mock
-  private OrderRepository orderRepository;
-
-  @Mock
-  private ProductClient productClient;
-
-  @InjectMocks
   private OrderService orderService;
+  private FakeOrderRepository fakeOrderRepository;
+  private OrderItemService orderItemService;
+  private FakeOrderItemRepository fakeOrderItemRepository;
+  private FakeProductClient fakeProductClient;
 
-  @Nested
-  @DisplayName("전체 주문 조회 테스트")
-  class FindAllOrdersTest {
+  @BeforeEach
+  void setUp() {
+    fakeOrderRepository = new FakeOrderRepository();
+    fakeOrderItemRepository = new FakeOrderItemRepository();
+    fakeProductClient = new FakeProductClient();
 
-    @Test
-    @DisplayName("모든 주문을 조회할 수 있다")
-    void 모든_주문을_조회할_수_있다() {
-      List<Order> orders = List.of(
-          new Order(1L, 1L, 2, 20000, OrderStatus.PENDING),
-          new Order(2L, 2L, 1, 15000, OrderStatus.COMPLETED)
-      );
-      given(orderRepository.findAll()).willReturn(orders);
+    orderItemService = new OrderItemService(fakeOrderItemRepository, fakeProductClient);
+    orderService = new OrderService(fakeOrderRepository, orderItemService);
 
-      List<OrderResponse> result = orderService.findAllOrders();
-
-      assertThat(result).hasSize(2);
-      assertThat(result.get(0).id()).isEqualTo(1L);
-      assertThat(result.get(1).id()).isEqualTo(2L);
-    }
-
-    @Test
-    @DisplayName("주문이 없을 때, 빈 리스트를 반환한다.")
-    void 주문이_없을_때_빈_리스트를_반환한다() {
-      given(orderRepository.findAll()).willReturn(List.of());
-
-      final List<OrderResponse> result = orderService.findAllOrders();
-
-      assertThat(result).hasSize(0);
-    }
+    // 테스트 상품 데이터 세팅
+    fakeProductClient.addProduct(1L, "연필", 500, 10);
+    fakeProductClient.addProduct(2L, "지우개", 300, 20);
+    fakeProductClient.addProduct(3L, "공책", 1000, 5);
   }
 
   @Nested
-  @DisplayName("주문 단건 조회 테스트")
-  class FindOrderByIdTest {
-
-    @Test
-    @DisplayName("존재하는 주문 ID로 주문을 조회할 수 있다")
-    void 존재하는_주문_ID로_주문을_조회할_수_있다() {
-      Long orderId = 1L;
-      Order order = new Order(orderId, 1L, 2, 20000, OrderStatus.PENDING);
-      given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
-
-      OrderResponse result = orderService.findOrderById(orderId);
-
-      assertThat(result.id()).isEqualTo(orderId);
-      assertThat(result.productId()).isEqualTo(1L);
-      assertThat(result.quantity()).isEqualTo(2);
-      assertThat(result.totalPrice()).isEqualTo(20000);
-      assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 주문 ID로 조회 시 예외가 발생한다")
-    void 존재하지_않는_주문_ID로_조회_시_예외가_발생한다() {
-      Long orderId = 999L;
-      given(orderRepository.findById(orderId)).willReturn(Optional.empty());
-
-      assertThatThrownBy(() -> orderService.findOrderById(orderId))
-          .isInstanceOf(ApplicationException.class);
-    }
-  }
-
-  @Nested
-  @DisplayName("주문 생성 테스트")
   class CreateOrderTest {
 
-    private ProductResponse productResponse;
-    private CreateOrderRequest createOrderRequest;
+    @Test
+    void 단일_상품으로_주문을_생성할_수_있다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 2) // 연필 2개
+      ));
 
-    @BeforeEach
-    void setUp() {
-      productResponse = new ProductResponse(1L, "테스트 상품", 10000, 100);
-      createOrderRequest = new CreateOrderRequest(1L, 5);
+      // Act
+      OrderResponse response = orderService.createOrder(request);
+
+      // Assert
+      assertThat(response)
+          .satisfies(r -> {
+            assertThat(r.id()).isEqualTo(1L);
+            assertThat(r.memberId()).isEqualTo(1L);
+            assertThat(r.totalPrice()).isEqualTo(1000); // 500 * 2
+            assertThat(r.status()).isEqualTo(OrderStatus.PENDING);
+          });
+
+      // 저장된 Order 확인
+      List<Order> savedOrders = fakeOrderRepository.findAll();
+      assertThat(savedOrders).hasSize(1);
+
+      // 저장된 OrderItem 확인
+      List<OrderItem> savedItems = fakeOrderItemRepository.findAll();
+      assertThat(savedItems)
+          .hasSize(1)
+          .extracting(OrderItem::getProductName)
+          .containsExactly("연필");
     }
 
     @Test
-    @DisplayName("유효한 요청으로 주문을 생성할 수 있다")
-    void 유효한_요청으로_주문을_생성할_수_있다() {
-      given(productClient.getProduct(1L)).willReturn(productResponse);
-      Order savedOrder = new Order(1L, 1L, 5, 50000, OrderStatus.PENDING);
-      given(orderRepository.save(any(Order.class))).willReturn(savedOrder);
+    void 여러_상품으로_주문을_생성할_수_있다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 2), // 연필 2개 = 1000원
+          new OrderItemRequest(2L, 3)  // 지우개 3개 = 900원
+      ));
 
-      OrderResponse result = orderService.createOrder(createOrderRequest);
+      // Act
+      OrderResponse response = orderService.createOrder(request);
 
-      assertThat(result.id()).isEqualTo(1L);
-      assertThat(result.productId()).isEqualTo(1L);
-      assertThat(result.quantity()).isEqualTo(5);
-      assertThat(result.totalPrice()).isEqualTo(50000);
-      assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
-      verify(orderRepository).save(any(Order.class));
+      // Assert
+      assertThat(response.totalPrice()).isEqualTo(1900);
+
+      List<OrderItem> savedItems = fakeOrderItemRepository.findAll();
+      assertThat(savedItems)
+          .hasSize(2)
+          .extracting(OrderItem::getProductName)
+          .containsExactlyInAnyOrder("연필", "지우개");
     }
 
     @Test
-    @DisplayName("재고가 부족한 경우 예외가 발생한다")
-    void 재고가_부족한_경우_예외가_발생한다() {
-      ProductResponse insufficientStockProduct = new ProductResponse(1L, "테스트 상품", 10000, 3);
-      CreateOrderRequest requestMoreThanStock = new CreateOrderRequest(1L, 5);
-      given(productClient.getProduct(1L)).willReturn(insufficientStockProduct);
+    void 재고가_부족하면_주문_생성이_실패한다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(3L, 10) // 공책 10개 요청 (재고 5개)
+      ));
 
-      assertThatThrownBy(() -> orderService.createOrder(requestMoreThanStock))
-          .isInstanceOf(ApplicationException.class)
-          .hasMessage("주문하려는 상품의 재고가 부족합니다. 남은 재고: 3");
+      // Act & Assert
+      assertThatExceptionOfType(ApplicationException.class)
+          .isThrownBy(() -> orderService.createOrder(request))
+          .withMessageContaining("재고 부족")
+          .withMessageContaining("공책");
     }
 
     @Test
-    @DisplayName("존재하지 않는 상품으로 주문 생성 시 예외가 발생한다")
-    void 존재하지_않는_상품으로_주문_생성_시_예외가_발생한다() {
-      given(productClient.getProduct(anyLong())).willThrow(FeignException.class);
+    void 존재하지_않는_상품으로_주문_생성_시_실패한다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(999L, 1) // 존재하지 않는 상품
+      ));
 
-      assertThatThrownBy(() -> orderService.createOrder(createOrderRequest))
-          .isInstanceOf(ProductNotFoundException.class)
-          .hasMessage("주문하려는 상품을 찾을 수 없습니다.");
+      // Act & Assert
+      assertThatThrownBy(() -> orderService.createOrder(request))
+          .isInstanceOf(RuntimeException.class)
+          .hasMessageContaining("상품을 찾을 수 없습니다");
     }
 
     @Test
-    @DisplayName("재고와 주문 수량이 같을 때 주문을 생성할 수 있다")
-    void 재고와_주문_수량이_같을_때_주문을_생성할_수_있다() {
-      ProductResponse exactStockProduct = new ProductResponse(1L, "테스트 상품", 10000, 5);
-      CreateOrderRequest exactQuantityRequest = new CreateOrderRequest(1L, 5);
-      given(productClient.getProduct(1L)).willReturn(exactStockProduct);
-      Order savedOrder = new Order(1L, 1L, 5, 50000, OrderStatus.PENDING);
-      given(orderRepository.save(any(Order.class))).willReturn(savedOrder);
+    void 복합_상품_주문을_생성할_수_있다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(2L, List.of(
+          new OrderItemRequest(1L, 5),  // 연필 5개 = 2500원
+          new OrderItemRequest(2L, 10), // 지우개 10개 = 3000원
+          new OrderItemRequest(3L, 2)   // 공책 2개 = 2000원
+      ));
 
-      OrderResponse result = orderService.createOrder(exactQuantityRequest);
+      // Act
+      OrderResponse response = orderService.createOrder(request);
 
-      assertThat(result).isNotNull();
-      assertThat(result.quantity()).isEqualTo(5);
+      // Assert
+      assertThat(response)
+          .satisfies(r -> {
+            assertThat(r.memberId()).isEqualTo(2L);
+            assertThat(r.totalPrice()).isEqualTo(7500);
+            assertThat(r.status()).isEqualTo(OrderStatus.PENDING);
+          });
+
+      List<OrderItem> savedItems = fakeOrderItemRepository.findAll();
+      assertThat(savedItems)
+          .hasSize(3)
+          .extracting(OrderItem::getOrderQuantity)
+          .containsExactly(5, 10, 2);
     }
   }
 
   @Nested
-  @DisplayName("주문 취소 테스트")
+  class FindOrderTest {
+
+    @Test
+    void 주문_ID로_주문을_조회할_수_있다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 2)
+      ));
+      OrderResponse createdOrder = orderService.createOrder(request);
+
+      // Act
+      OrderResponse foundOrder = orderService.findOrderById(createdOrder.id());
+
+      // Assert
+      assertThat(foundOrder)
+          .satisfies(order -> {
+            assertThat(order.id()).isEqualTo(createdOrder.id());
+            assertThat(order.memberId()).isEqualTo(1L);
+            assertThat(order.totalPrice()).isEqualTo(1000);
+          });
+    }
+
+    @Test
+    void 존재하지_않는_주문_ID로_조회_시_예외가_발생한다() {
+      // Arrange
+      Long nonExistentOrderId = 999L;
+
+      // Act & Assert
+      assertThatExceptionOfType(ApplicationException.class)
+          .isThrownBy(() -> orderService.findOrderById(nonExistentOrderId))
+          .withMessageContaining("주문 정보를 찾을 수 없습니다.");
+    }
+
+    @Test
+    void 모든_주문을_조회할_수_있다() {
+      // Arrange
+      CreateOrderRequest request1 = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 1)
+      ));
+      CreateOrderRequest request2 = new CreateOrderRequest(2L, List.of(
+          new OrderItemRequest(2L, 2)
+      ));
+
+      orderService.createOrder(request1);
+      orderService.createOrder(request2);
+
+      // Act
+      List<OrderResponse> allOrders = orderService.findAllOrders();
+
+      // Assert
+      assertThat(allOrders)
+          .hasSize(2)
+          .extracting(OrderResponse::memberId)
+          .containsExactly(1L, 2L);
+    }
+  }
+
+  @Nested
   class CancelOrderTest {
 
     @Test
-    @DisplayName("PENDING 상태의 주문을 취소할 수 있다")
     void PENDING_상태의_주문을_취소할_수_있다() {
-      Long orderId = 1L;
-      Order pendingOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.PENDING);
-      given(orderRepository.findById(orderId)).willReturn(Optional.of(pendingOrder));
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 2)
+      ));
+      OrderResponse createdOrder = orderService.createOrder(request);
 
-      OrderResponse result = orderService.cancelOrder(orderId);
+      // Act
+      OrderResponse cancelledOrder = orderService.cancelOrder(createdOrder.id());
 
-      assertThat(result.id()).isEqualTo(orderId);
-      assertThat(result.status()).isEqualTo(OrderStatus.CANCELLED);
+      // Assert
+      assertThat(cancelledOrder.status()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test
-    @DisplayName("존재하지 않는 주문 취소 시 예외가 발생한다")
     void 존재하지_않는_주문_취소_시_예외가_발생한다() {
-      Long orderId = 999L;
-      given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+      // Arrange
+      Long nonExistentOrderId = 999L;
 
-      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
-          .isInstanceOf(ApplicationException.class);
+      // Act & Assert
+      assertThatExceptionOfType(ApplicationException.class)
+          .isThrownBy(() -> orderService.cancelOrder(nonExistentOrderId))
+          .withMessageContaining("주문 정보를 찾을 수 없습니다.");
     }
+  }
+
+  @Nested
+  class EmptyOrderTest {
 
     @Test
-    @DisplayName("COMPLETED 상태의 주문 취소 시 예외가 발생한다")
-    void COMPLETED_상태의_주문_취소_시_예외가_발생한다() {
-      Long orderId = 1L;
-      Order completedOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.COMPLETED);
-      given(orderRepository.findById(orderId)).willReturn(Optional.of(completedOrder));
+    void 빈_주문_목록으로_주문_생성_시_0원이_된다() {
+      // Arrange
+      CreateOrderRequest request = new CreateOrderRequest(1L, List.of());
 
-      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
-          .isInstanceOf(ApplicationException.class);
+      // Act
+      OrderResponse response = orderService.createOrder(request);
+
+      // Assert
+      assertThat(response.totalPrice()).isZero();
+      assertThat(fakeOrderItemRepository.findAll()).isEmpty();
     }
+  }
+
+  @Nested
+  class MultipleOrdersTest {
 
     @Test
-    @DisplayName("이미 취소된 주문 취소 시 예외가 발생한다")
-    void 이미_취소된_주문_취소_시_예외가_발생한다() {
-      Long orderId = 1L;
-      Order cancelledOrder = new Order(orderId, 1L, 2, 20000, OrderStatus.CANCELLED);
-      given(orderRepository.findById(orderId)).willReturn(Optional.of(cancelledOrder));
+    void 같은_회원이_여러_주문을_생성할_수_있다() {
+      // Arrange
+      CreateOrderRequest request1 = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(1L, 1)
+      ));
+      CreateOrderRequest request2 = new CreateOrderRequest(1L, List.of(
+          new OrderItemRequest(2L, 2)
+      ));
 
-      assertThatThrownBy(() -> orderService.cancelOrder(orderId))
-          .isInstanceOf(ApplicationException.class);
+      // Act
+      OrderResponse order1 = orderService.createOrder(request1);
+      OrderResponse order2 = orderService.createOrder(request2);
+
+      // Assert
+      assertThat(order1.id()).isNotEqualTo(order2.id());
+
+      List<Order> savedOrders = fakeOrderRepository.findAll();
+      assertThat(savedOrders)
+          .hasSize(2)
+          .allSatisfy(order -> assertThat(order.getMemberId()).isEqualTo(1L));
     }
   }
 }

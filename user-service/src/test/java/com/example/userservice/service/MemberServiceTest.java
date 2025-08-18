@@ -3,11 +3,14 @@ package com.example.userservice.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.example.userservice.client.FakePointServiceClient;
+import com.example.userservice.client.PointServiceClient;
 import com.example.userservice.dto.request.CreateMemberRequest;
 import com.example.userservice.dto.response.MemberResponse;
 import com.example.userservice.global.ErrorCode;
 import com.example.userservice.global.MemberException;
 import com.example.userservice.repository.FakeMemberRepository;
+import com.example.userservice.repository.MemberRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,7 +22,9 @@ public class MemberServiceTest {
 
   @BeforeEach
   void setUp() {
-    memberService = new MemberService(new FakeMemberRepository());
+    PointServiceClient pointServiceClient = new FakePointServiceClient();
+    MemberRepository memberRepository = new FakeMemberRepository();
+    memberService = new MemberService(memberRepository, pointServiceClient);
   }
 
   @Nested

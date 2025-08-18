@@ -1,9 +1,7 @@
 package com.example.orderservice.service;
 
-import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.CreateOrderRequest;
-import com.example.orderservice.dto.request.ReduceProductRequest;
-import com.example.orderservice.dto.request.RestoreProductRequest;
+import com.example.orderservice.dto.request.OrderItemRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.ProductResponse;
 import com.example.orderservice.entity.Order;
@@ -17,11 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
   private final OrderRepository orderRepository;
-  private final ProductClient productClient;
+  private final OrderItemService orderItemService;
 
-  public OrderService(final OrderRepository orderRepository, final ProductClient productClient) {
+  public OrderService(final OrderRepository orderRepository, final OrderItemService orderItemService) {
     this.orderRepository = orderRepository;
-    this.productClient = productClient;
+    this.orderItemService = orderItemService;
   }
 
   public List<OrderResponse> findAllOrders() {
@@ -37,15 +35,17 @@ public class OrderService {
 
   @Transactional
   public OrderResponse createOrder(final CreateOrderRequest request) {
-    final ProductResponse product = productClient.getProduct(request.productId());
+    final List<OrderItemRequest> items = request.items();
 
-    reduceProductStock(product.id(), request.quantity());
+    final Integer totalPrice = orderItemService.calculateTotalPrice(items);
 
-    final Order order = request.toDomain(product.price());
+    final Order order = request.toDomain(totalPrice);
 
-    final Order saved = orderRepository.save(order);
+    final Order savedOrder = orderRepository.save(order);
 
-    return OrderResponse.of(saved);
+    orderItemService.saveOrderItems(items, savedOrder);
+
+    return OrderResponse.of(savedOrder);
   }
 
   @Transactional
@@ -55,20 +55,6 @@ public class OrderService {
 
     order.cancel();
 
-    restoreProductStock(order.getProductId(), order.getQuantity());
-
     return OrderResponse.of(order);
-  }
-
-  private void reduceProductStock(final Long productId, final Integer quantity) {
-    final ReduceProductRequest request = new ReduceProductRequest(productId, quantity);
-
-    productClient.reduceStock(request);
-  }
-
-  private void restoreProductStock(final Long productId, final Integer quantity) {
-    final RestoreProductRequest request = new RestoreProductRequest(productId, quantity);
-
-    productClient.restoreStock(request);
   }
 }

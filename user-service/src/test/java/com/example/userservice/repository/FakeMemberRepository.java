@@ -11,6 +11,11 @@ public class FakeMemberRepository implements MemberRepository {
   private final AtomicLong idGenerator = new AtomicLong(0);
 
   @Override
+  public Optional<Member> findByEmailWithLock(final String email) {
+    return Optional.empty();
+  }
+
+  @Override
   public Optional<Member> findById(final Long id) {
     return Optional.ofNullable(store.get(id));
   }
