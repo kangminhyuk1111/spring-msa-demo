@@ -28,12 +28,12 @@ public class PointController {
     return pointService.findPointByUserId(id);
   }
 
-  @PostMapping("/earn")
+  @PostMapping("/add")
   public PointResponse addPointByUserId(@RequestBody AddPointRequest request) {
     return pointService.addPoint(request);
   }
 
-  @PostMapping("/deduct")
+  @PostMapping("/use")
   public PointResponse usePointByUserId(@RequestBody UsePointRequest request) {
     return pointService.usePoint(request);
   }

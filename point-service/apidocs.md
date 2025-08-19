@@ -5,7 +5,7 @@
 
 ### 1. 포인트 계좌 조회
 
-**GET** `/points/accounts/{userId}`
+**GET** `/api/points/{userId}`
 
 사용자의 포인트 계좌 정보를 조회합니다.
 
@@ -41,7 +41,7 @@
 
 ### 2. 포인트 추가
 
-**POST** `/points/add`
+**POST** `/api/points/add`
 
 포인트를 추가합니다. 계좌가 없으면 자동으로 생성됩니다.
 
@@ -100,7 +100,7 @@
 
 ### 3. 포인트 차감
 
-**POST** `/points/use`
+**POST** `/api/points/use`
 
 포인트를 차감합니다. 계좌가 없으면 자동으로 생성 후 잔액 부족으로 실패합니다.
 
@@ -164,36 +164,6 @@
 2. 잔액 확인 → 3000 < 5000 (부족)
 응답: 400 Bad Request (포인트가 부족합니다)
 ```
-
----
-
-### 5. 포인트 사용 가능 여부 확인
-
-**GET** `/points/can-use/{userId}/{amount}`
-
-특정 금액의 포인트 사용이 가능한지 확인합니다.
-
-#### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| userId | Long | Yes | 사용자 ID |
-| amount | Integer | Yes | 확인할 포인트 금액 |
-
-#### Response
-**200 OK**
-```json
-{
-  "canUse": true,
-  "currentBalance": 5000,
-  "requestAmount": 3000
-}
-```
-
-#### 플로우
-1. 사용자 ID로 계좌 조회 (Lock 없음)
-2. 계좌가 없으면 false 반환
-3. 계좌가 있으면 잔액과 요청 금액 비교
-4. 잔액 >= 요청 금액이면 true, 아니면 false
 
 ---
 
