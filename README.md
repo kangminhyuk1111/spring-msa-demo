@@ -1,7 +1,5 @@
 # Spring MSA Demo
 
-<img width="400" height="400" alt="Image" src="https://github.com/user-attachments/assets/333a9737-c611-4269-9aa5-f6ce877d1299" />
-
 > **멀티서버 아키텍처를 활용한 이커머스 시스템**  
 > Spring Boot 기반 마이크로서비스 패턴 학습 프로젝트
 
