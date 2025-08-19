@@ -76,7 +76,7 @@ class OrderTest {
         // pendingOrder는 BeforeEach에서 설정됨
 
         // Act
-        pendingOrder.paid();
+        pendingOrder.markAsPaid();
 
         // Assert
         assertThat(pendingOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
@@ -88,7 +88,7 @@ class OrderTest {
         // paidOrder는 BeforeEach에서 설정됨
 
         // Act & Assert
-        assertThatThrownBy(() -> paidOrder.paid())
+        assertThatThrownBy(() -> paidOrder.markAsPaid())
             .isInstanceOf(ApplicationException.class)
             .hasMessage("대기 중인 주문만 취소 처리할 수 있습니다.");
       }
@@ -99,7 +99,7 @@ class OrderTest {
         // completedOrder는 BeforeEach에서 설정됨
 
         // Act & Assert
-        assertThatThrownBy(() -> completedOrder.paid())
+        assertThatThrownBy(() -> completedOrder.markAsPaid())
             .isInstanceOf(ApplicationException.class)
             .hasMessage("대기 중인 주문만 취소 처리할 수 있습니다.");
       }
@@ -110,7 +110,7 @@ class OrderTest {
         // cancelledOrder는 BeforeEach에서 설정됨
 
         // Act & Assert
-        assertThatThrownBy(() -> cancelledOrder.paid())
+        assertThatThrownBy(() -> cancelledOrder.markAsPaid())
             .isInstanceOf(ApplicationException.class)
             .hasMessage("대기 중인 주문만 취소 처리할 수 있습니다.");
       }

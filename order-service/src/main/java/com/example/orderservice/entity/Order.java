@@ -49,7 +49,7 @@ public class Order {
     this.status = OrderStatus.COMPLETED;
   }
 
-  public void paid() {
+  public void markAsPaid() {
     if (this.status != OrderStatus.PENDING) {
       throw new ApplicationException("대기 중인 주문만 취소 처리할 수 있습니다.");
     }

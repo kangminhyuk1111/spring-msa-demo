@@ -10,6 +10,7 @@ import com.example.orderservice.exception.ApplicationException;
 import com.example.orderservice.fake.FakeOrderItemRepository;
 import com.example.orderservice.fake.FakeOrderRepository;
 import com.example.orderservice.fake.FakeProductClient;
+import com.example.orderservice.payment.PaymentProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class OrderServiceTest {
 
@@ -25,15 +27,17 @@ class OrderServiceTest {
   private OrderItemService orderItemService;
   private FakeOrderItemRepository fakeOrderItemRepository;
   private FakeProductClient fakeProductClient;
+  private PaymentProcessor paymentProcessor;
 
   @BeforeEach
   void setUp() {
     fakeOrderRepository = new FakeOrderRepository();
     fakeOrderItemRepository = new FakeOrderItemRepository();
     fakeProductClient = new FakeProductClient();
+    paymentProcessor = mock(paymentProcessor);
 
     orderItemService = new OrderItemService(fakeOrderItemRepository, fakeProductClient);
-    orderService = new OrderService(fakeOrderRepository, orderItemService);
+    orderService = new OrderService(fakeOrderRepository, orderItemService, paymentProcessor);
 
     // 테스트 상품 데이터 세팅
     fakeProductClient.addProduct(1L, "연필", 500, 10);

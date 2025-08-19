@@ -1,5 +1,5 @@
 package com.example.pointservice.dto.request;
 
-public record RefundPointRequest(Long userId, Integer balance) {
+public record RefundPointRequest(Long userId, Integer amount) {
 
 }

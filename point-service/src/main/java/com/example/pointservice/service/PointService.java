@@ -61,10 +61,10 @@ public class PointService {
     final Point point = pointRepository.findByUserIdWithLock(request.userId())
         .orElseThrow(() -> new PointException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-    point.refundPoint(request.balance());
+    point.refundPoint(request.amount());
 
     log.info("포인트 환불 완료 - userId: {}, 환불금액: {}, 잔여포인트: {}",
-        request.userId(), request.balance(), point.getBalance());
+        request.userId(), request.amount(), point.getBalance());
 
     return PointResponse.of(point);
   }
