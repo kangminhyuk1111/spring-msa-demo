@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.example.pointservice.dto.request.AddPointRequest;
 import com.example.pointservice.dto.request.UsePointRequest;
 import com.example.pointservice.dto.response.PointResponse;
+import com.example.pointservice.exception.ErrorCode;
 import com.example.pointservice.exception.PointException;
 import com.example.pointservice.repository.FakePointRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ public class PointServiceTest {
       // Act & Assert
       assertThatThrownBy(() -> pointService.createPointAccount(userId))
           .isInstanceOf(PointException.class)
-          .hasMessage("이미 포인트 계좌가 존재합니다.");
+          .hasMessage(ErrorCode.ACCOUNT_ALREADY_EXISTS.getMessage());
     }
   }
 
@@ -83,7 +84,7 @@ public class PointServiceTest {
       // Act & Assert
       assertThatThrownBy(() -> pointService.findPointByUserId(userId))
           .isInstanceOf(PointException.class)
-          .hasMessage("계좌가 존재하지 않습니다.");
+          .hasMessage(ErrorCode.ACCOUNT_ALREADY_EXISTS.getMessage());
     }
   }
 
@@ -145,7 +146,7 @@ public class PointServiceTest {
       // Act & Assert
       assertThatThrownBy(() -> pointService.usePoint(request))
           .isInstanceOf(PointException.class)
-          .hasMessage("포인트가 부족합니다.");
+          .hasMessage(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
 
       // 계좌는 생성되어야 함
       PointResponse createdAccount = pointService.findPointByUserId(userId);
@@ -182,7 +183,7 @@ public class PointServiceTest {
       // Act & Assert
       assertThatThrownBy(() -> pointService.usePoint(request))
           .isInstanceOf(PointException.class)
-          .hasMessage("포인트가 부족합니다.");
+          .hasMessage(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
 
       // 잔액은 변경되지 않아야 함
       PointResponse account = pointService.findPointByUserId(userId);

@@ -2,11 +2,19 @@ package com.example.pointservice.exception;
 
 public class PointException extends RuntimeException {
 
-  public PointException(String message) {
-    super(message);
+  private final ErrorCode errorCode;
+
+  public PointException(ErrorCode errorCode) {
+    super(errorCode.getMessage());
+    this.errorCode = errorCode;
   }
 
-  public PointException(String message, Throwable cause) {
-    super(message, cause);
+  public PointException(ErrorCode errorCode, Throwable cause) {
+    super(errorCode.getMessage(), cause);
+    this.errorCode = errorCode;
+  }
+
+  public ErrorCode getErrorCode() {
+    return errorCode;
   }
 }

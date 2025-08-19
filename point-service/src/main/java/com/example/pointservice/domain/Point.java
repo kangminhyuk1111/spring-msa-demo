@@ -1,5 +1,6 @@
 package com.example.pointservice.domain;
 
+import com.example.pointservice.exception.ErrorCode;
 import com.example.pointservice.exception.PointException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,7 +47,7 @@ public class Point {
 
   public static Point openAccount(Long userId) {
     if (userId == null) {
-      throw new PointException("userId는 null일 수 없습니다.");
+      throw new PointException(ErrorCode.USER_ID_NOT_NULL);
     }
 
     return new Point(userId, 0);
@@ -60,7 +61,7 @@ public class Point {
   // 포인트 사용
   public void usePoint(final Integer balance) {
     if (this.balance < balance) {
-      throw new PointException("포인트가 부족합니다.");
+      throw new PointException(ErrorCode.INSUFFICIENT_BALANCE);
     }
 
     this.balance = this.balance - balance;
