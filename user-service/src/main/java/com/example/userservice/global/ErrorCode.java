@@ -9,7 +9,9 @@ public enum ErrorCode {
 
   EMAIL_ALREADY_EXIST("이미 사용중인 이메일입니다."),
 
-  MEMBER_NOT_FOUND("찾을 수 없는 멤버입니다.");
+  MEMBER_NOT_FOUND("찾을 수 없는 멤버입니다."),
+
+  LOGIN_FAIL("아이디 혹은 비밀번호가 일치하지 않습니다.");
 
   private final String message;
 

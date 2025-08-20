@@ -23,6 +23,9 @@ public class Member {
   private String email;
 
   @Column(nullable = false)
+  private String password;
+
+  @Column(nullable = false)
   private LocalDateTime createdAt;
 
   @Column(nullable = false)
@@ -31,9 +34,12 @@ public class Member {
   public Member() {
   }
 
-  public Member(final String name, final String email) {
+  public Member(final String name, final String email, final String password) {
     this.name = name;
     this.email = email;
+    this.password = password;
+    this.createdAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
   }
 
   public Member(final Long id, final String name, final String email, final LocalDateTime createdAt,
@@ -55,6 +61,10 @@ public class Member {
 
   public String getEmail() {
     return email;
+  }
+
+  public String getPassword() {
+    return password;
   }
 
   public LocalDateTime getCreatedAt() {

@@ -11,8 +11,17 @@ public class FakeMemberRepository implements MemberRepository {
   private final AtomicLong idGenerator = new AtomicLong(0);
 
   @Override
+  public Optional<Member> findByEmail(final String email) {
+    return store.values().stream()
+        .filter(member -> member.getEmail().equals(email))
+        .findFirst();
+  }
+
+  @Override
   public Optional<Member> findByEmailWithLock(final String email) {
-    return Optional.empty();
+    return store.values().stream()
+        .filter(member -> member.getEmail().equals(email))
+        .findFirst();
   }
 
   @Override
@@ -40,19 +49,6 @@ public class FakeMemberRepository implements MemberRepository {
     }
     store.put(memberToSave.getId(), memberToSave);
     return memberToSave;
-  }
-
-  @Override
-  public void update(final Member member) {
-    if (!store.containsKey(member.getId())) {
-      throw new NoSuchElementException("Member not found with id: " + member.getId());
-    }
-    store.put(member.getId(), member);
-  }
-
-  @Override
-  public void deleteById(final Long id) {
-    store.remove(id);
   }
 
   @Override

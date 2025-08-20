@@ -5,7 +5,7 @@ import com.example.userservice.global.ErrorCode;
 import com.example.userservice.global.MemberException;
 import java.util.regex.Pattern;
 
-public record CreateMemberRequest(String name, String email) {
+public record CreateMemberRequest(String name, String email, String password) {
 
   private static final Pattern EMAIL_PATTERN =
       Pattern.compile("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$");
@@ -39,6 +39,6 @@ public record CreateMemberRequest(String name, String email) {
   }
 
   public Member toDomain() {
-    return new Member(this.name, this.email);
+    return new Member(this.name, this.email, this.password);
   }
 }

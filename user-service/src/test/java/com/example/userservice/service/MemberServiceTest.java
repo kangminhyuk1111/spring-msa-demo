@@ -3,8 +3,8 @@ package com.example.userservice.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.example.userservice.client.FakePointServiceClient;
-import com.example.userservice.client.PointServiceClient;
+import com.example.userservice.auth.JJwtProvider;
+import com.example.userservice.auth.JwtProvider;
 import com.example.userservice.dto.request.CreateMemberRequest;
 import com.example.userservice.dto.response.MemberResponse;
 import com.example.userservice.global.ErrorCode;
@@ -19,12 +19,16 @@ import org.junit.jupiter.api.Test;
 public class MemberServiceTest {
 
   private MemberService memberService;
+  private JwtProvider jwtProvider;
 
   @BeforeEach
   void setUp() {
-    PointServiceClient pointServiceClient = new FakePointServiceClient();
     MemberRepository memberRepository = new FakeMemberRepository();
-    memberService = new MemberService(memberRepository, pointServiceClient);
+    jwtProvider = new JJwtProvider(
+        "testSecretKeyForTestingPurposeOnly32Chars",
+        3600000L
+    );
+    memberService = new MemberService(memberRepository, jwtProvider);
   }
 
   @Nested
@@ -33,7 +37,7 @@ public class MemberServiceTest {
     @Test
     void 성공() {
       // Arrange
-      final CreateMemberRequest request = new CreateMemberRequest("name", "email@email.com");
+      final CreateMemberRequest request = new CreateMemberRequest("name", "email@email.com", "password@");
 
       // Act
       MemberResponse response = memberService.createMember(request);
@@ -53,7 +57,7 @@ public class MemberServiceTest {
     @Test
     void 실패_이메일_중복() {
       // Arrange
-      final CreateMemberRequest request = new CreateMemberRequest("name", "email@email.com");
+      final CreateMemberRequest request = new CreateMemberRequest("name", "email@email.com", "password");
       memberService.createMember(request);
 
       // Act & Assert
@@ -71,7 +75,8 @@ public class MemberServiceTest {
       // Arrange
       String name = "kim";
       String email = "kim@gmail.com";
-      final CreateMemberRequest request = new CreateMemberRequest(name, email);
+      String password = "password@";
+      final CreateMemberRequest request = new CreateMemberRequest(name, email, password);
       final MemberResponse member = memberService.createMember(request);
 
       // Act
@@ -91,8 +96,8 @@ public class MemberServiceTest {
     @Test
     void 전체_멤버_조회() {
       // Arrange
-      CreateMemberRequest request1 = new CreateMemberRequest("kim1", "kim1@gmail.com");
-      CreateMemberRequest request2 = new CreateMemberRequest("kim2", "kim2@gmail.com");
+      CreateMemberRequest request1 = new CreateMemberRequest("kim1", "kim1@gmail.com", "password@");
+      CreateMemberRequest request2 = new CreateMemberRequest("kim2", "kim2@gmail.com", "password@");
       memberService.createMember(request1);
       memberService.createMember(request2);
 

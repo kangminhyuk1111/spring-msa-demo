@@ -31,9 +31,10 @@ public class MemberTest {
       // Arrange
       String name = "홍길동";
       String email = "hong@example.com";
+      String password = "password@";
 
       // Act
-      Member member = new Member(name, email);
+      Member member = new Member(name, email, password);
 
       // Assert
       assertThat(member)
@@ -181,17 +182,19 @@ public class MemberTest {
       // Arrange
       String name = "테스트";
       String email = "test@example.com";
+      String password = "password@";
 
       // Act
-      Member member = new Member(name, email);
+      Member member = new Member(name, email, password);
 
       // Assert
       assertThat(member)
           .extracting(
               Member::getName,
-              Member::getEmail
+              Member::getEmail,
+              Member::getPassword
           )
-          .containsExactly(name, email);
+          .containsExactly(name, email, password);
 
       assertThat(member)
           .extracting(
