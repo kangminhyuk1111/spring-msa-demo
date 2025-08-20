@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/*
+✅ 필수 구현
+- GET /api/products - 상품 목록 조회 (기본 페이징)
+- GET /api/products/{id} - 상품 상세 조회
+- POST /api/products - 상품 등록 (관리자용)
+*/
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {

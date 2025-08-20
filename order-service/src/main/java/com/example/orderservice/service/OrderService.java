@@ -22,7 +22,8 @@ public class OrderService {
   private final OrderItemService orderItemService;
   private final PaymentProcessor processor;
 
-  public OrderService(final OrderRepository orderRepository, final OrderItemService orderItemService,
+  public OrderService(final OrderRepository orderRepository,
+      final OrderItemService orderItemService,
       final PaymentProcessor paymentProcessor) {
     this.orderRepository = orderRepository;
     this.orderItemService = orderItemService;
@@ -73,7 +74,7 @@ public class OrderService {
 
     final PaymentResult result = processor.processPayment(paymentRequest);
 
-    if(result.status() != PaymentStatus.SUCCESS) {
+    if (result.status() != PaymentStatus.SUCCESS) {
       throw new ApplicationException("결제 실패: " + result.failureReason());
     }
 
@@ -85,5 +86,13 @@ public class OrderService {
   private Order findByOrderId(final Long orderId) {
     return orderRepository.findById(orderId)
         .orElseThrow(() -> new ApplicationException("주문 정보를 찾을 수 없습니다."));
+  }
+
+  public List<OrderResponse> findMyOrders(final Long userId) {
+    List<Order> orders = orderRepository.findOrdersByUserId(userId);
+
+    return orders.stream()
+        .map(OrderResponse::of)
+        .toList();
   }
 }

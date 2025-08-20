@@ -12,11 +12,11 @@ public record CreateMemberRequest(String name, String email, String password) {
 
   public CreateMemberRequest {
     if (name == null || name.trim().isEmpty()) {
-      throw new MemberException(ErrorCode.NAME_REQUIRED.getMessage());
+      throw new MemberException(ErrorCode.NAME_REQUIRED);
     }
 
     if (email == null || email.trim().isEmpty()) {
-      throw new MemberException(ErrorCode.EMAIL_REQUIRED.getMessage());
+      throw new MemberException(ErrorCode.EMAIL_REQUIRED);
     }
 
     name = name.trim();
@@ -28,13 +28,13 @@ public record CreateMemberRequest(String name, String email, String password) {
 
   private void validateName(String name) {
     if (name.length() < 2) {
-      throw new MemberException(ErrorCode.MEMBER_NAME_TOO_SHORT.getMessage());
+      throw new MemberException(ErrorCode.MEMBER_NAME_TOO_SHORT);
     }
   }
 
   private void validateEmail(String email) {
     if (!EMAIL_PATTERN.matcher(email).matches()) {
-      throw new MemberException(ErrorCode.EMAIL_VALIDATION_FAILED.getMessage());
+      throw new MemberException(ErrorCode.EMAIL_VALIDATION_FAILED);
     }
   }
 

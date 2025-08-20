@@ -28,10 +28,10 @@ public class MemberService {
   @Transactional
   public LoginResponse login(final LoginRequest request) {
     final Member member = memberRepository.findByEmail(request.email())
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND.getMessage()));
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     if (!member.getPassword().equals(request.password())) {
-      throw new MemberException(ErrorCode.LOGIN_FAIL.getMessage());
+      throw new MemberException(ErrorCode.LOGIN_FAIL);
     }
 
     return jwtProvider.generateToken(member.getId());
@@ -42,7 +42,7 @@ public class MemberService {
     Optional<Member> existingMember = memberRepository.findByEmailWithLock(request.email());
 
     if (existingMember.isPresent()) {
-      throw new MemberException(ErrorCode.EMAIL_ALREADY_EXIST.getMessage());
+      throw new MemberException(ErrorCode.EMAIL_ALREADY_EXIST);
     }
 
     final Member saved = memberRepository.save(request.toDomain());
@@ -52,7 +52,7 @@ public class MemberService {
 
   public MemberResponse findById(final Long id) {
     final Member member = memberRepository.findById(id)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND.getMessage()));
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     return MemberResponse.of(member);
   }
